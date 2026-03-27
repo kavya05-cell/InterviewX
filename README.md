@@ -1,16 +1,25 @@
-# React + Vite
+# InterviewX
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This repository contains the main `InterviewX` project and separate contributor workspaces.
 
-Currently, two official plugins are available:
+## Separate contribution by `rishabh-gt-hub`
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Path:
 
-## React Compiler
+`contributions/rishabh-gt-hub/projectlens-interview-os`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+This contribution adds a complete mock interview frontend prototype with:
 
-## Expanding the ESLint configuration
+- Git repo based interview setup
+- Voice and video interview practice
+- Live mock performance insights
+- Previous session records tracking
+- Landing page, dashboard, about, and contact views
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Run the contribution locally
+
+```bash
+cd contributions/rishabh-gt-hub/projectlens-interview-os
+npm install
+npm run dev
+```
