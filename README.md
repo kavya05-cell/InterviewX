@@ -1,4 +1,4 @@
-# InterviewX
+# ProjectLens Interview OS
 
 This repository contains the main `InterviewX` project and separate contributor workspaces.
 
