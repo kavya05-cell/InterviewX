@@ -100,6 +100,4 @@ InterviewX/
 - Voice transcription depends on browser support for `SpeechRecognition` or `webkitSpeechRecognition`.
 - Camera rehearsal depends on `navigator.mediaDevices.getUserMedia`.
 
-## Purpose
 
-This repository now treats ProjectLens Interview OS as the main app at the repo root rather than a contributor-only subfolder project.
