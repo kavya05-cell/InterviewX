@@ -1,25 +1,25 @@
 # ProjectLens Interview OS
 
-This repository contains the main `InterviewX` project and separate contributor workspaces.
+ProjectLens is a React + Vite frontend for repo-aware mock interview practice.
 
-## Separate contribution by `rishabh-gt-hub`
+## What it includes
 
-Path:
+- Login, home, dashboard, records, about, and contact views
+- Git repository URL input for repo-specific interview prompts
+- Browser voice transcription support
+- Camera rehearsal preview
+- Live mock performance analytics and coaching insights
+- Local session history tracking
 
-`contributions/rishabh-gt-hub/projectlens-interview-os`
-
-This contribution adds a complete mock interview frontend prototype with:
-
-- Git repo based interview setup
-- Voice and video interview practice
-- Live mock performance insights
-- Previous session records tracking
-- Landing page, dashboard, about, and contact views
-
-## Run the contribution locally
+## Run locally
 
 ```bash
-cd contributions/rishabh-gt-hub/projectlens-interview-os
 npm install
 npm run dev
+```
+
+## Build
+
+```bash
+npm run build
 ```
