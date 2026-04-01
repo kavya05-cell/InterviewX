@@ -3,7 +3,7 @@
 Contributor: `rishabh-gt-hub`
 
 This is a separate frontend contribution added inside the `InterviewX` repository to reflect Rishabh's work.
-
+this is project analyser mock ai interview generator web based app
 ## What it includes
 
 - React + Vite frontend
