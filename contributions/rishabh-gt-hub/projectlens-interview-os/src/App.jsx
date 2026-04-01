@@ -1,4 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import AboutSection from "./components/pages/AboutSection";
+import ContactSection from "./components/pages/ContactSection";
+import DashboardSection from "./components/pages/DashboardSection";
+import HomeSection from "./components/pages/HomeSection";
+import RecordsSection from "./components/pages/RecordsSection";
 
 const STORAGE_KEYS = {
   auth: "projectlens_auth",
@@ -676,85 +681,6 @@ function summarizeSession(answerSnapshots) {
   };
 }
 
-function ScoreBar({ label, value }) {
-  return (
-    <div className="score-row">
-      <div className="score-label-row">
-        <span>{label}</span>
-        <strong>{value}%</strong>
-      </div>
-      <div className="score-track">
-        <div className="score-fill" style={{ width: `${value}%` }}></div>
-      </div>
-    </div>
-  );
-}
-
-function FeatureCard({ tag, title, copy }) {
-  return (
-    <article className="feature-card">
-      <span className="feature-tag">{tag}</span>
-      <h3>{title}</h3>
-      <p>{copy}</p>
-    </article>
-  );
-}
-
-function RecordCard({ record }) {
-  return (
-    <article className="record-card">
-      <div className="record-topline">
-        <div>
-          <p className="eyebrow">Session Record</p>
-          <h3>{record.repo}</h3>
-        </div>
-        <span className="score-pill">{record.overall}% overall</span>
-      </div>
-
-      <div className="record-meta">
-        <span>{formatRecordDate(record.date)}</span>
-        <span>{record.role}</span>
-        <span>{record.round}</span>
-      </div>
-
-      <div className="record-grid">
-        <ScoreBar label="Clarity" value={record.clarity} />
-        <ScoreBar label="Depth" value={record.depth} />
-        <ScoreBar label="Ownership" value={record.ownership} />
-        <ScoreBar label="Delivery" value={record.delivery} />
-      </div>
-
-      <div className="record-lists">
-        <div>
-          <p className="mini-heading">Strengths</p>
-          <ul className="bullet-list">
-            {record.strengths.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </div>
-
-        <div>
-          <p className="mini-heading">Improve Next</p>
-          <ul className="bullet-list">
-            {record.improvements.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      <div className="evidence-ledger">
-        {record.evidence.map((item) => (
-          <span key={item} className="signal-chip">
-            {item}
-          </span>
-        ))}
-      </div>
-    </article>
-  );
-}
-
 export default function App() {
   const [user, setUser] = useState(() => readStoredValue(STORAGE_KEYS.auth, null));
   const [records, setRecords] = useState(() => readStoredValue(STORAGE_KEYS.records, seededRecords));
@@ -808,6 +734,9 @@ export default function App() {
   const timerText = formatDuration(session.elapsedSeconds);
   const questionTimerText = formatDuration(session.questionSeconds);
   const liveText = `${answerText} ${interimText}`.trim();
+  const roleLabel = getRoleLabel(settings.role);
+  const roundLabel = getRoundLabel(settings.round);
+  const pressureLabel = getPressureLabel(settings.pressure);
   const liveMetrics = useMemo(
     () => computeMetrics(liveText, session.questionSeconds, repoProfile),
     [liveText, session.questionSeconds, repoProfile]
@@ -1254,6 +1183,14 @@ export default function App() {
     setContactForm(defaultContact);
   }
 
+  function handleRepoUrlChange(event) {
+    setRepoUrl(event.target.value);
+  }
+
+  function handleAnswerChange(event) {
+    setAnswerText(event.target.value);
+  }
+
   const authView = (
     <section className="auth-shell">
       <div className="auth-layout">
@@ -1350,715 +1287,79 @@ export default function App() {
   );
 
   const homeView = (
-    <section className="page-stack">
-      <section className="hero-grid">
-        <div className="hero-main card">
-          <p className="eyebrow">Amazon-inspired simple UI</p>
-          <h2>Mock interviews that feel closer to a real hiring loop than a plain chat.</h2>
-          <p className="section-copy">
-            Link a code repository, choose the interview mode, practice with voice or video, and
-            leave with replayable scorecards that show how your answers are changing over time.
-          </p>
-
-          <div className="hero-actions">
-            <button type="button" className="primary-btn" onClick={() => setActiveSection("dashboard")}>
-              Open Dashboard
-            </button>
-            <button type="button" className="secondary-btn" onClick={() => setActiveSection("records")}>
-              View Records
-            </button>
-          </div>
-
-          <div className="pill-row">
-            <span className="pill">Git repo input</span>
-            <span className="pill">Voice transcription</span>
-            <span className="pill">Camera rehearsal</span>
-            <span className="pill">Performance coaching</span>
-          </div>
-        </div>
-
-        <aside className="hero-side card spotlight-card">
-          <p className="mini-heading">Live snapshot</p>
-          <div className="snapshot-row">
-            <span>Pressure</span>
-            <strong>{getPressureLabel(settings.pressure)}</strong>
-          </div>
-          <div className="snapshot-row">
-            <span>Session plan</span>
-            <strong>{settings.duration} minutes</strong>
-          </div>
-          <div className="snapshot-row">
-            <span>Records saved</span>
-            <strong>{records.length}</strong>
-          </div>
-          <div className="snapshot-row">
-            <span>Latest score</span>
-            <strong>{latestSession?.overall ?? 0}%</strong>
-          </div>
-          <div className="callout-box">
-            <p>
-              Different from a normal chatbot: ProjectLens builds repo context, pressure-based
-              follow-ups, evidence tracking, and replayable scorecards into one focused flow.
-            </p>
-          </div>
-        </aside>
-      </section>
-
-      <section className="section-block">
-        <div className="section-heading">
-          <p className="eyebrow">Core features</p>
-          <h2>Main product features on the web app</h2>
-        </div>
-        <div className="feature-grid">
-          {homeFeatures.map((feature) => (
-            <FeatureCard key={feature.title} {...feature} />
-          ))}
-        </div>
-      </section>
-
-      <section className="section-block">
-        <div className="section-heading">
-          <p className="eyebrow">Why this feels different</p>
-          <h2>Unique details that separate it from typical interview apps</h2>
-        </div>
-        <div className="difference-grid">
-          {uniqueFeatures.map((item) => (
-            <article key={item.title} className="difference-card card">
-              <h3>{item.title}</h3>
-              <p>{item.copy}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="section-block workflow-panel card">
-        <div className="section-heading">
-          <p className="eyebrow">How it works</p>
-          <h2>Fast interview workflow</h2>
-        </div>
-
-        <div className="workflow-grid">
-          <article>
-            <span className="step-badge">01</span>
-            <h3>Link a repository</h3>
-            <p>The repo analyzer creates a project lens, hotspot map, and tailored prompts.</p>
-          </article>
-          <article>
-            <span className="step-badge">02</span>
-            <h3>Run the mock loop</h3>
-            <p>Choose pressure level, answer out loud, and let the app surface follow-up angles.</p>
-          </article>
-          <article>
-            <span className="step-badge">03</span>
-            <h3>Replay your performance</h3>
-            <p>Review score movement, evidence usage, strengths, and next-practice priorities.</p>
-          </article>
-        </div>
-      </section>
-    </section>
+    <HomeSection
+      homeFeatures={homeFeatures}
+      latestOverall={latestSession?.overall ?? 0}
+      onOpenDashboard={() => setActiveSection("dashboard")}
+      onOpenRecords={() => setActiveSection("records")}
+      pressureLabel={pressureLabel}
+      recordsCount={records.length}
+      sessionDuration={settings.duration}
+      uniqueFeatures={uniqueFeatures}
+    />
   );
 
   const dashboardView = (
-    <section className="page-stack">
-      <section className="dashboard-header-row">
-        <div>
-          <p className="eyebrow">Dashboard</p>
-          <h2>Interview studio and performance control center</h2>
-          <p className="section-copy">{studioMessage}</p>
-        </div>
-        <div className="timer-card card">
-          <span>Session timer</span>
-          <strong>{timerText}</strong>
-          <small>Question timer {questionTimerText}</small>
-        </div>
-      </section>
-
-      <div className="summary-grid">
-        <article className="summary-card card">
-          <p className="mini-heading">Repo lens</p>
-          <strong>{repoProfile.repoName}</strong>
-          <span>{repoProfile.lens}</span>
-        </article>
-        <article className="summary-card card">
-          <p className="mini-heading">Role track</p>
-          <strong>{getRoleLabel(settings.role)}</strong>
-          <span>{getRoundLabel(settings.round)}</span>
-        </article>
-        <article className="summary-card card">
-          <p className="mini-heading">Pressure dial</p>
-          <strong>{getPressureLabel(settings.pressure)}</strong>
-          <span>{settings.duration}-minute loop</span>
-        </article>
-        <article className="summary-card card">
-          <p className="mini-heading">Signal replay</p>
-          <strong>{latestSession?.overall ?? 0}%</strong>
-          <span>{scoreDelta >= 0 ? `+${scoreDelta}` : scoreDelta}% versus previous saved record</span>
-        </article>
-      </div>
-
-      <div className="dashboard-grid">
-        <div className="dashboard-main">
-          <article className="card setup-card">
-            <div className="card-header">
-              <div>
-                <p className="mini-heading">Interview setup</p>
-                <h3>Shape the mock loop before you begin</h3>
-              </div>
-              <div className="control-cluster">
-                <button
-                  type="button"
-                  className="primary-btn"
-                  onClick={startSession}
-                  disabled={session.active}
-                >
-                  {session.active ? "Loop Running" : "Start Interview"}
-                </button>
-                <button
-                  type="button"
-                  className="secondary-btn"
-                  onClick={finishSessionNow}
-                  disabled={!session.active}
-                >
-                  Finish Loop
-                </button>
-              </div>
-            </div>
-
-            <div className="form-grid">
-              <label className="field">
-                <span>Role</span>
-                <select name="role" value={settings.role} onChange={handleSettingChange}>
-                  {roleOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="field">
-                <span>Round type</span>
-                <select name="round" value={settings.round} onChange={handleSettingChange}>
-                  {roundOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="field">
-                <span>Duration</span>
-                <select name="duration" value={settings.duration} onChange={handleSettingChange}>
-                  {durationOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="field range-field">
-                <span>Pressure dial: {getPressureLabel(settings.pressure)}</span>
-                <input
-                  name="pressure"
-                  type="range"
-                  min="1"
-                  max="4"
-                  value={settings.pressure}
-                  onChange={handleSettingChange}
-                />
-              </label>
-            </div>
-
-            <div className="toggle-row">
-              <label className="toggle-chip">
-                <input
-                  name="voiceEnabled"
-                  type="checkbox"
-                  checked={settings.voiceEnabled}
-                  onChange={handleSettingChange}
-                />
-                <span>Voice ready</span>
-              </label>
-              <label className="toggle-chip">
-                <input
-                  name="videoEnabled"
-                  type="checkbox"
-                  checked={settings.videoEnabled}
-                  onChange={handleSettingChange}
-                />
-                <span>Video preview</span>
-              </label>
-              <span className="inline-note">
-                Pressure dial changes follow-up tone across the generated question set.
-              </span>
-            </div>
-          </article>
-
-          <article className="card repo-card">
-            <div className="card-header">
-              <div>
-                <p className="mini-heading">Repository analyzer</p>
-                <h3>Paste a Git repo and generate project-specific prompts</h3>
-              </div>
-              <span className="badge">Repo Mirror</span>
-            </div>
-
-            <form className="repo-form" onSubmit={handleRepoSubmit}>
-              <label className="field grow">
-                <span>Repository URL</span>
-                <input
-                  type="url"
-                  placeholder="https://github.com/owner/project"
-                  value={repoUrl}
-                  onChange={(event) => setRepoUrl(event.target.value)}
-                />
-              </label>
-              <button type="submit" className="primary-btn">
-                Analyze Repo
-              </button>
-            </form>
-            <p className={`helper-text ${repoFeedback.type}`.trim()}>{repoFeedback.text}</p>
-
-            <div className="repo-layout">
-              <div className="repo-copy">
-                <h4>{repoProfile.lens}</h4>
-                <p>{repoProfile.summary}</p>
-
-                <div className="tag-cloud">
-                  {repoProfile.stack.map((item) => (
-                    <span key={item} className="pill">
-                      {item}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="mini-list-grid">
-                  <div>
-                    <p className="mini-heading">Hotspots</p>
-                    <ul className="bullet-list">
-                      {repoProfile.hotspots.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div>
-                    <p className="mini-heading">Standout answer cues</p>
-                    <ul className="bullet-list">
-                      {repoProfile.standout.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <div className="score-panel">
-                <p className="mini-heading">Ownership radar</p>
-                <ScoreBar label="Architecture" value={repoProfile.scorecard.architecture} />
-                <ScoreBar label="Reliability" value={repoProfile.scorecard.reliability} />
-                <ScoreBar label="Product" value={repoProfile.scorecard.product} />
-                <ScoreBar label="Execution" value={repoProfile.scorecard.execution} />
-              </div>
-            </div>
-          </article>
-
-          <article className="card stage-card">
-            <div className="card-header">
-              <div>
-                <p className="mini-heading">Live interview</p>
-                <h3>
-                  {session.active
-                    ? `Question ${session.currentQuestionIndex + 1} of ${questionSet.length}`
-                    : "Preview the next question set"}
-                </h3>
-              </div>
-              <span className={`status-badge ${session.active ? "live" : ""}`.trim()}>
-                {session.active ? "Session live" : "Preview mode"}
-              </span>
-            </div>
-
-            <div className="question-card">
-              <p className="prompt-text">{currentQuestion?.prompt}</p>
-              <div className="followup-row">
-                {currentQuestion?.followUps.map((item) => (
-                  <span key={item} className="followup-chip">
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <label className="field">
-              <span>Voice transcript and answer notes</span>
-              <textarea
-                placeholder="Speak your answer or type it here. Use numbers, impact, and clear ownership language."
-                value={answerText}
-                onChange={(event) => setAnswerText(event.target.value)}
-              ></textarea>
-            </label>
-
-            {interimText ? (
-              <div className="interim-box">
-                <p className="mini-heading">Live transcript</p>
-                <p>{interimText}</p>
-              </div>
-            ) : null}
-
-            <div className="control-cluster wrap">
-              <button
-                type="button"
-                className={`secondary-btn ${isListening ? "recording" : ""}`.trim()}
-                onClick={toggleVoiceCapture}
-                disabled={!settings.voiceEnabled}
-              >
-                {isListening ? "Stop Voice Input" : "Start Voice Input"}
-              </button>
-              <button type="button" className="secondary-btn" onClick={clearCurrentAnswer}>
-                Clear Draft
-              </button>
-              <button type="button" className="primary-btn" onClick={saveAndContinue}>
-                {session.active && session.currentQuestionIndex >= questionSet.length - 1
-                  ? "Save And Finish"
-                  : "Save And Next"}
-              </button>
-            </div>
-
-            <p className="helper-text">{speechStatus}</p>
-          </article>
-
-          <article className="card question-stack-card">
-            <div className="card-header">
-              <div>
-                <p className="mini-heading">Question stack</p>
-                <h3>Generated prompts for this mock loop</h3>
-              </div>
-              <span className="badge">{questionProgress}% progress</span>
-            </div>
-
-            <div className="question-stack">
-              {activeQuestions.map((question, index) => (
-                <article
-                  key={question.id}
-                  className={`question-stack-item ${index === session.currentQuestionIndex ? "active" : ""}`.trim()}
-                >
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  <div>
-                    <strong>{question.prompt}</strong>
-                    <p>{question.followUps[2]}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </article>
-        </div>
-
-        <aside className="dashboard-side">
-          <article className="card video-card">
-            <div className="card-header">
-              <div>
-                <p className="mini-heading">Video rehearsal</p>
-                <h3>Camera preview</h3>
-              </div>
-              <span className="badge">{settings.videoEnabled ? "Enabled" : "Off"}</span>
-            </div>
-
-            <div className="video-frame">
-              {settings.videoEnabled ? (
-                <video ref={videoRef} autoPlay muted playsInline />
-              ) : (
-                <div className="video-placeholder">
-                  <span>Video preview</span>
-                  <strong>Turn on camera in the setup card to rehearse posture and eye contact.</strong>
-                </div>
-              )}
-            </div>
-            <p className="helper-text">{cameraStatus}</p>
-          </article>
-
-          <article className="card metrics-card">
-            <div className="card-header">
-              <div>
-                <p className="mini-heading">Live performance</p>
-                <h3>Ownership radar</h3>
-              </div>
-              <span className="badge">Signal Replay</span>
-            </div>
-
-            <div className="metric-grid">
-              <div className="metric-tile">
-                <span>Confidence</span>
-                <strong>{liveMetrics.confidence}%</strong>
-              </div>
-              <div className="metric-tile">
-                <span>Clarity</span>
-                <strong>{liveMetrics.clarity}%</strong>
-              </div>
-              <div className="metric-tile">
-                <span>Depth</span>
-                <strong>{liveMetrics.depth}%</strong>
-              </div>
-              <div className="metric-tile">
-                <span>Ownership</span>
-                <strong>{liveMetrics.ownership}%</strong>
-              </div>
-            </div>
-
-            <div className="mini-list-grid">
-              <div className="stat-panel">
-                <span>Speaking pace</span>
-                <strong>{liveMetrics.pace}</strong>
-                <small>{liveMetrics.wpm} WPM</small>
-              </div>
-              <div className="stat-panel">
-                <span>Filler count</span>
-                <strong>{liveMetrics.fillerCount}</strong>
-                <small>Lower is better</small>
-              </div>
-            </div>
-          </article>
-
-          <article className="card coach-card">
-            <div className="card-header">
-              <div>
-                <p className="mini-heading">Coaching insight</p>
-                <h3>Strengths and next improvements</h3>
-              </div>
-              <span className="badge">Actionable</span>
-            </div>
-
-            <p className="section-copy tight">{coach.summary}</p>
-
-            <div className="mini-list-grid">
-              <div>
-                <p className="mini-heading">Doing well</p>
-                <ul className="bullet-list">
-                  {coach.strengths.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <p className="mini-heading">Improve next</p>
-                <ul className="bullet-list">
-                  {coach.improvements.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </article>
-
-          <article className="card evidence-card">
-            <div className="card-header">
-              <div>
-                <p className="mini-heading">Evidence ledger</p>
-                <h3>What your answer proved</h3>
-              </div>
-              <span className="badge">Unique feature</span>
-            </div>
-
-            <p className="section-copy tight">
-              This panel extracts measurable proof points from your current answer so you can see
-              whether the response sounds concrete enough for a real interviewer.
-            </p>
-
-            <div className="evidence-ledger">
-              {liveMetrics.evidence.length ? (
-                liveMetrics.evidence.map((item) => (
-                  <span key={item} className="signal-chip">
-                    {item}
-                  </span>
-                ))
-              ) : (
-                <span className="muted-inline">
-                  Add numbers, timings, uptime, users, costs, or impact words to make the answer stronger.
-                </span>
-              )}
-            </div>
-          </article>
-        </aside>
-      </div>
-    </section>
+    <DashboardSection
+      activeQuestions={activeQuestions}
+      answerText={answerText}
+      cameraStatus={cameraStatus}
+      clearCurrentAnswer={clearCurrentAnswer}
+      coach={coach}
+      currentQuestion={currentQuestion}
+      durationOptions={durationOptions}
+      finishSessionNow={finishSessionNow}
+      handleAnswerChange={handleAnswerChange}
+      handleRepoSubmit={handleRepoSubmit}
+      handleRepoUrlChange={handleRepoUrlChange}
+      handleSettingChange={handleSettingChange}
+      interimText={interimText}
+      isListening={isListening}
+      latestSession={latestSession}
+      liveMetrics={liveMetrics}
+      pressureLabel={pressureLabel}
+      questionProgress={questionProgress}
+      questionSet={questionSet}
+      questionTimerText={questionTimerText}
+      repoFeedback={repoFeedback}
+      repoProfile={repoProfile}
+      repoUrl={repoUrl}
+      roleLabel={roleLabel}
+      roleOptions={roleOptions}
+      roundLabel={roundLabel}
+      roundOptions={roundOptions}
+      saveAndContinue={saveAndContinue}
+      scoreDelta={scoreDelta}
+      session={session}
+      settings={settings}
+      speechStatus={speechStatus}
+      startSession={startSession}
+      studioMessage={studioMessage}
+      timerText={timerText}
+      toggleVoiceCapture={toggleVoiceCapture}
+      videoRef={videoRef}
+    />
   );
 
   const recordsView = (
-    <section className="page-stack">
-      <section className="section-heading">
-        <p className="eyebrow">Records</p>
-        <h2>Track previous mock sessions and measure improvement</h2>
-        <p className="section-copy">
-          Every saved loop becomes a replayable record so you can compare overall score, clarity,
-          depth, ownership, and the evidence you used.
-        </p>
-      </section>
-
-      <div className="summary-grid">
-        <article className="summary-card card">
-          <p className="mini-heading">Saved sessions</p>
-          <strong>{records.length}</strong>
-          <span>History stored locally in the browser</span>
-        </article>
-        <article className="summary-card card">
-          <p className="mini-heading">Average score</p>
-          <strong>{averageRecordScore}%</strong>
-          <span>Across all recorded mock loops</span>
-        </article>
-        <article className="summary-card card">
-          <p className="mini-heading">Best replay</p>
-          <strong>{bestRecord?.overall ?? 0}%</strong>
-          <span>{bestRecord?.repo ?? "No sessions yet"}</span>
-        </article>
-        <article className="summary-card card">
-          <p className="mini-heading">Latest coaching note</p>
-          <strong>{latestSession?.keyInsight ?? "Complete a session"}</strong>
-          <span>Most recent insight from the dashboard</span>
-        </article>
-      </div>
-
-      <div className="records-layout">
-        <div className="records-column">
-          {records.map((record) => (
-            <RecordCard key={record.id} record={record} />
-          ))}
-        </div>
-
-        <aside className="dashboard-side">
-          <article className="card">
-            <div className="card-header">
-              <div>
-                <p className="mini-heading">Trend pulse</p>
-                <h3>How your practice is moving</h3>
-              </div>
-              <span className="badge">Replay</span>
-            </div>
-
-            <ScoreBar label="Latest overall" value={latestSession?.overall ?? 0} />
-            <ScoreBar label="Average overall" value={averageRecordScore} />
-            <ScoreBar label="Best overall" value={bestRecord?.overall ?? 0} />
-          </article>
-
-          <article className="card">
-            <div className="card-header">
-              <div>
-                <p className="mini-heading">Suggested next loop</p>
-                <h3>Use the dashboard to sharpen weak spots</h3>
-              </div>
-            </div>
-
-            <ul className="bullet-list">
-              <li>Run a higher pressure session if your recent delivery already feels stable.</li>
-              <li>Link a stronger repo example if you need deeper project storytelling.</li>
-              <li>Practice adding one metric to every answer before moving to the next question.</li>
-            </ul>
-          </article>
-        </aside>
-      </div>
-    </section>
+    <RecordsSection
+      averageRecordScore={averageRecordScore}
+      bestRecord={bestRecord}
+      formatRecordDate={formatRecordDate}
+      latestSession={latestSession}
+      records={records}
+    />
   );
 
-  const aboutView = (
-    <section className="page-stack">
-      <section className="section-heading">
-        <p className="eyebrow">About us</p>
-        <h2>A mock interview product built around repo ownership, not generic prompts</h2>
-      </section>
-
-      <div className="difference-grid">
-        <article className="difference-card card">
-          <h3>What the app is for</h3>
-          <p>
-            ProjectLens is designed for candidates who want their mock interview practice to feel
-            like a real product conversation. Instead of asking only generic questions, it frames
-            the interview around an actual repository and the judgment behind it.
-          </p>
-        </article>
-        <article className="difference-card card">
-          <h3>How the frontend prototype works</h3>
-          <p>
-            This React frontend simulates repo analysis, question generation, live scoring, voice
-            transcript capture, camera rehearsal, and local records tracking so the core product
-            experience is tangible end to end.
-          </p>
-        </article>
-        <article className="difference-card card">
-          <h3>Design direction</h3>
-          <p>
-            The interface uses a clean Amazon-inspired visual language with dark navigation, bright
-            utility actions, straightforward content hierarchy, and responsive card-based layouts
-            for real-world usability.
-          </p>
-        </article>
-      </div>
-    </section>
-  );
+  const aboutView = <AboutSection />;
 
   const contactView = (
-    <section className="page-stack">
-      <section className="section-heading">
-        <p className="eyebrow">Contact</p>
-        <h2>Reach the team or collect product interest</h2>
-        <p className="section-copy">
-          This section rounds out the frontend with a realistic contact area for support, founder
-          outreach, or early product requests.
-        </p>
-      </section>
-
-      <div className="contact-layout">
-        <article className="card contact-card">
-          <p className="mini-heading">Contact details</p>
-          <h3>ProjectLens Mock Studio</h3>
-          <ul className="bullet-list">
-            <li>Email: hello@projectlens.ai</li>
-            <li>Support: support@projectlens.ai</li>
-            <li>Location: Greater Noida, India</li>
-          </ul>
-        </article>
-
-        <form className="card contact-form" onSubmit={handleContactSubmit}>
-          <p className="mini-heading">Send a message</p>
-          <h3>Ask for a demo, feedback, or product roadmap details</h3>
-
-          <label className="field">
-            <span>Name</span>
-            <input
-              name="name"
-              type="text"
-              value={contactForm.name}
-              onChange={handleContactChange}
-              placeholder="Your name"
-            />
-          </label>
-
-          <label className="field">
-            <span>Email</span>
-            <input
-              name="email"
-              type="email"
-              value={contactForm.email}
-              onChange={handleContactChange}
-              placeholder="Your email"
-            />
-          </label>
-
-          <label className="field">
-            <span>Message</span>
-            <textarea
-              name="message"
-              value={contactForm.message}
-              onChange={handleContactChange}
-              placeholder="Tell us what kind of interview experience you want to build."
-            ></textarea>
-          </label>
-
-          <button type="submit" className="primary-btn">
-            Send Message
-          </button>
-          <p className="helper-text">{contactMessage}</p>
-        </form>
-      </div>
-    </section>
+    <ContactSection
+      contactForm={contactForm}
+      contactMessage={contactMessage}
+      handleContactChange={handleContactChange}
+      handleContactSubmit={handleContactSubmit}
+    />
   );
 
   const sectionMap = {
