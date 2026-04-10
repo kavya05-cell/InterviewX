@@ -1,3 +1,4 @@
+
 const mongoose=require("mongoose");
 const waitListSchema= new mongoose.Schema({
 
@@ -13,4 +14,5 @@ const waitListSchema= new mongoose.Schema({
 });
 
 const waitListModel= mongoose.model("waitlist",waitListSchema);
+
 module.exports = waitListModel;

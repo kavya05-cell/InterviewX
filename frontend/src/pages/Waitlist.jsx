@@ -90,35 +90,55 @@ export default function Waitlist({ onClose }) {
           borderRadius: "10px"
         }}>
           <h2 style={{ color: "#111", textAlign: "center" }}>Join Waitlist</h2>
+          
+           <form onSubmit={handleSubmit}>
+  <input
+    placeholder="First Name"
+    onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+    style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
+  />
 
-          <form onSubmit={handleSubmit}>
-            <input placeholder="First Name"
-              onChange={(e) =>
-                setForm({ ...form, first_name: e.target.value })}
-            /><br />
+  <input
+    placeholder="Last Name"
+    onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+    style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
+  />
 
-            <input placeholder="Last Name"
-              onChange={(e) =>
-                setForm({ ...form, last_name: e.target.value })}
-            /><br />
+  <input
+    placeholder="Email"
+    onChange={(e) => setForm({ ...form, email: e.target.value })}
+    style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
+  />
 
-            <input placeholder="Email"
-              onChange={(e) =>
-                setForm({ ...form, email: e.target.value })}
-            /><br />
+  <input
+    placeholder="Phone"
+    onChange={(e) => setForm({ ...form, phone_no: e.target.value })}
+    style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
+  />
 
-            <input placeholder="Phone"
-              onChange={(e) =>
-                setForm({ ...form, phone_no: e.target.value })}
-            /><br />
+  <input
+    placeholder="Reason"
+    onChange={(e) => setForm({ ...form, reason: e.target.value })}
+    style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
+  />
 
-            <input placeholder="Reason"
-              onChange={(e) =>
-                setForm({ ...form, reason: e.target.value })}
-            /><br />
+  {/* 🔥 THIS WAS MISSING */}
+  <button
+    type="submit"
+    style={{
+      width: "100%",
+      padding: "10px",
+      background: "#18c5ff",
+      color: "white",
+      border: "none",
+      borderRadius: "8px",
+      cursor: "pointer"
+    }}
+  >
+    Submit
+  </button>
 
-            <button type="submit">Submit</button>
-          </form>
+</form>
 
           <p>{message}</p>
         </div>
