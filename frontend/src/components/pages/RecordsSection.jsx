@@ -11,7 +11,6 @@ export default function RecordsSection({
   return (
     <section className="page-stack">
       <section className="section-heading">
-        <p className="eyebrow">Records</p>
         <h2>Track previous mock sessions and measure improvement</h2>
         <p className="section-copy">
           Every saved loop becomes a replayable record so you can compare overall score, clarity,

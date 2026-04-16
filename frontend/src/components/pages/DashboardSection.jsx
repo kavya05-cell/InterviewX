@@ -1,4 +1,5 @@
 import ScoreBar from "../shared/ScoreBar";
+import React,{ useRef, useState} from "react";
 
 export default function DashboardSection({
   activeQuestions,
@@ -10,7 +11,6 @@ export default function DashboardSection({
   durationOptions,
   finishSessionNow,
   handleAnswerChange,
-  handleRepoSubmit,
   handleRepoUrlChange,
   handleSettingChange,
   interimText,
@@ -20,7 +20,6 @@ export default function DashboardSection({
   pressureLabel,
   questionProgress,
   questionSet,
-  questionTimerText,
   repoFeedback,
   repoProfile,
   repoUrl,
@@ -37,20 +36,60 @@ export default function DashboardSection({
   studioMessage,
   timerText,
   toggleVoiceCapture,
-  videoRef
+  analysis/*={analysis}*/,
+  setAnalysis/*={setAnalysis}*/,
 }) {
+  const videoRef=useRef(null);
+  const [cameraOn, setCameraOn]=useState(false);
+  console.log("ANALYSIS:", analysis);
+  const startCamera=async()=>{
+    try{
+      const steam=await navigator.mediaDevices.getUserMedia({video:true});
+      if(videoRef.current){
+        videoRef.current.srcObject=steam;
+        setCameraOn(true);
+      }
+    }catch(err){
+      console.error("Error accessing camera:",err);
+      alert("Unable to access camera. Please check permissions and try again.");
+    }
+    }
+    const handleRepoSubmit = async (e) => {
+  console.log("🔥 BUTTON CLICKED");
+
+  if (e) e.preventDefault();
+
+  console.log("Repo URL:", repoUrl);
+
+  try {
+    const res = await fetch("http://localhost:8000/api/github/analyze", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ repo_url: repoUrl }),
+    });
+
+    const data = await res.json();
+
+    console.log("✅ RESPONSE:", data);
+
+    setAnalysis(data);
+
+  } catch (err) {
+    console.error("❌ ERROR:", err);
+  }
+};
   return (
     <section className="page-stack">
       <section className="dashboard-header-row">
         <div>
-          <p className="eyebrow">Dashboard</p>
           <h2>Interview studio and performance control center</h2>
           <p className="section-copy">{studioMessage}</p>
         </div>
         <div className="timer-card card">
           <span>Session timer</span>
           <strong>{timerText}</strong>
-          <small>Question timer {questionTimerText}</small>
         </div>
       </section>
 
@@ -186,7 +225,7 @@ export default function DashboardSection({
               <span className="badge">Repo Mirror</span>
             </div>
 
-            <form className="repo-form" onSubmit={handleRepoSubmit}>
+            <div className="repo-form" >
               <label className="field grow">
                 <span>Repository URL</span>
                 <input
@@ -196,16 +235,57 @@ export default function DashboardSection({
                   onChange={handleRepoUrlChange}
                 />
               </label>
-              <button type="submit" className="primary-btn">
-                Analyze Repo
-              </button>
-            </form>
+              <button type="button" className="primary-btn" onClick={handleRepoSubmit}>Analyze</button>
+            </div>
             <p className={`helper-text ${repoFeedback.type}`.trim()}>{repoFeedback.text}</p>
 
             <div className="repo-layout">
               <div className="repo-copy">
-                <h4>{repoProfile.lens}</h4>
-                <p>{repoProfile.summary}</p>
+                {analysis && (<div className="analysis-container">
+                <div className="card">
+                  <h2>Project Summary</h2>
+      <p>{analysis?.summary?.project_summary || "No summary available"}</p>
+    </div>
+
+    <div className="card">
+      <h2>Tech Stack</h2>
+      <ul>
+        {analysis?.summary?.tech_stack?.map((tech, i) => (
+          <li key={i}>{tech}</li>
+        ))}
+      </ul>
+    </div>
+
+    <div className="card">
+      <h2>Strengths</h2>
+      <ul>
+        {analysis?.summary?.strengths?.map((s, i) => (
+          <li key={i}>{s}</li>
+        ))}
+      </ul>
+    </div>
+
+    <div className="card">
+      <h2>Weaknesses</h2>
+      <ul>
+        {analysis?.summary?.weaknesses?.map((w, i) => (
+          <li key={i}>{w}</li>
+        ))}
+      </ul>
+    </div>
+
+    <div className="card">
+      <h2>Interview Questions</h2>
+      <ul>
+        {analysis?.summary?.interview_questions?.map((q, i) => (
+          <li key={i}>{q}</li>
+        ))}
+      </ul>
+    </div>
+
+  </div>
+)}
+
 
                 <div className="tag-cloud">
                   {repoProfile.stack.map((item) => (
@@ -340,7 +420,17 @@ export default function DashboardSection({
             <div className="card-header">
               <div>
                 <p className="mini-heading">Video rehearsal</p>
-                <h3>Camera preview</h3>
+                <div className="video-preview">
+                  {cameraOn ? (<video ref={videoRef}
+                  autoPlay
+                  playsInline
+                  className="w-full rounded-lg"/>) : (
+                <div>
+                  <p>Camera is off</p>
+                  <button onClick={startCamera}>Turn On Camera
+                  </button>
+                </div>)}
+              </div>
               </div>
               <span className="badge">{settings.videoEnabled ? "Enabled" : "Off"}</span>
             </div>
