@@ -135,7 +135,8 @@ async def generate_response(prompt: str, json_mode: bool = False):
         if json_mode:
             payload["format"] = "json"
 
-        print("🚀 Sending request to Ollama...")
+        print("Sending request to Ollama...")
+
         print("MODEL:", DEFAULT_MODEL)
 
         async with httpx.AsyncClient(timeout=60.0) as client:
@@ -148,5 +149,7 @@ async def generate_response(prompt: str, json_mode: bool = False):
         return data.get("response", "")
 
     except Exception as e:
-        print("❌ LLM ERROR:", str(e))
+
+        print("LLM ERROR:", str(e))
+
         return "LLM failed"
