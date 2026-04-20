@@ -2,7 +2,6 @@ export default function AboutSection() {
   return (
     <section className="page-stack">
       <section className="section-heading">
-        <p className="eyebrow">About us</p>
         <h2>A mock interview product built around repo ownership, not generic prompts</h2>
       </section>
 

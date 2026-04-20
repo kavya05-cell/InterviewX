@@ -3,6 +3,9 @@ const express=require("express");
 const connectDb=require("./config/db");
 
 const routes=require("./routes/waitListRoutes");
+
+const userRoutes=require("./routes/UserRoutes");
+
 // const path = require("path");
 const cors = require("cors");
 const path = require("path");

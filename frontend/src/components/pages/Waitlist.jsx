@@ -1,7 +1,6 @@
 import { useState } from "react";
 
 export default function Waitlist({ onClose }) {
-  const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
@@ -9,121 +8,139 @@ export default function Waitlist({ onClose }) {
     phone_no: "",
     reason: ""
   });
-  const [message, setMessage] = useState("");
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const res = await fetch("http://localhost:3000/api/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(form),
-    });
+    try {
+      const API = import.meta.env.VITE_API_URL;
+      const res = await fetch(`${API}/api/create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      alert(data.message || "Error ❌");
-      return;
+      if (!res.ok) {
+        alert(data.message || "Error ❌");
+        return;
+      }
+
+      alert("Submitted successfully 🚀");
+
+      // reset form
+      setForm({
+        first_name: "",
+        last_name: "",
+        email: "",
+        phone_no: "",
+        reason: ""
+      });
+
+      // close if needed
+      if (onClose) onClose();
+
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong ❌");
     }
-
-    // ✅ SUCCESS MESSAGE
-    alert("Submitted successfully 🚀");
-
-    // ✅ RESET FORM
-    setForm({
-      first_name: "",
-      last_name: "",
-      email: "",
-      phone_no: "",
-      reason: ""
-    });
-
-    // ✅ CLOSE MODAL
-    if (onClose) onClose();
-
-  } catch (err) {
-    console.error(err);
-    alert("Something went wrong ❌");
-  }
-};
+  };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "20px" }}>
+    <div
+      style={{
+        background: "white",
+        padding: "25px",
+        borderRadius: "12px",
+        maxWidth: "400px",
+        margin: "40px auto",
+        boxShadow: "0 10px 30px rgba(0,0,0,0.2)"
+      }}
+    >
+      <h2 style={{ textAlign: "center", marginBottom: "15px" }}>
+        Join Waitlist
+      </h2>
 
-      {/* 🔥 BUTTON */}
-      <button
-  onClick={() => setShowForm(!showForm)}
-  style={{
-    padding: "12px 24px",
-    fontSize: "16px",
-    fontWeight: "bold",
-    border: "none",
-    borderRadius: "30px",
-    background: "linear-gradient(135deg, #18c5ff, #00f2ff)",
-    color: "white",
-    cursor: "pointer",
-    boxShadow: "0 0 15px rgba(0, 255, 255, 0.83)",
-    transition: "all 0.3s ease"
-  }}
-  onMouseOver={(e) => {
-    e.target.style.boxShadow = "0 0 25px rgb(0, 238, 255)";
-    e.target.style.transform = "scale(1.05)";
-  }}
-  onMouseOut={(e) => {
-    e.target.style.boxShadow = "0 0 15px rgba(0, 229, 255, 0.7)";
-    e.target.style.transform = "scale(1)";
-  }}
->
-  {showForm ? "Close Waitlist " : "Join Waitlist"}
-</button>
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
 
-      {/* 🔥 FORM (only when clicked) */}
-      {showForm && (
-        <div style={{
-          background: "white",
-          padding: "20px",
-          marginTop: "20px",
-          borderRadius: "10px"
-        }}>
-          <h2 style={{ color: "#111", textAlign: "center" }}>Join Waitlist</h2>
+        <input
+          placeholder="First Name"
+          value={form.first_name}
+          onChange={(e) =>
+            setForm({ ...form, first_name: e.target.value })
+          }
+        />
 
-          <form onSubmit={handleSubmit}>
-            <input placeholder="First Name"
-              onChange={(e) =>
-                setForm({ ...form, first_name: e.target.value })}
-            /><br />
+        <input
+          placeholder="Last Name"
+          value={form.last_name}
+          onChange={(e) =>
+            setForm({ ...form, last_name: e.target.value })
+          }
+        />
 
-            <input placeholder="Last Name"
-              onChange={(e) =>
-                setForm({ ...form, last_name: e.target.value })}
-            /><br />
+        <input
+          type="email"
+          placeholder="Email"
+          value={form.email}
+          onChange={(e) =>
+            setForm({ ...form, email: e.target.value })
+          }
+        />
 
-            <input placeholder="Email"
-              onChange={(e) =>
-                setForm({ ...form, email: e.target.value })}
-            /><br />
+        <input
+          placeholder="Phone Number"
+          value={form.phone_no}
+          onChange={(e) =>
+            setForm({ ...form, phone_no: e.target.value })
+          }
+        />
 
-            <input placeholder="Phone"
-              onChange={(e) =>
-                setForm({ ...form, phone_no: e.target.value })}
-            /><br />
+        <input
+          placeholder="Why are you interested?"
+          value={form.reason}
+          onChange={(e) =>
+            setForm({ ...form, reason: e.target.value })
+          }
+        />
 
-            <input placeholder="Reason"
-              onChange={(e) =>
-                setForm({ ...form, reason: e.target.value })}
-            /><br />
+        <button
+          type="submit"
+          style={{
+            marginTop: "10px",
+            padding: "10px",
+            borderRadius: "8px",
+            border: "none",
+            background: "#22c55e",
+            color: "white",
+            fontWeight: "bold",
+            cursor: "pointer"
+          }}
+        >
+          Submit
+        </button>
 
-            <button type="submit">Submit</button>
-          </form>
+        {/* Optional close button */}
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              marginTop: "5px",
+              background: "transparent",
+              border: "none",
+              color: "#555",
+              cursor: "pointer"
+            }}
+          >
+            Cancel
+          </button>
+        )}
 
-          <p>{message}</p>
-        </div>
-      )}
+      </form>
     </div>
   );
 }
-

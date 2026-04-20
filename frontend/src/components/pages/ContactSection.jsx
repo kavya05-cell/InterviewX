@@ -7,7 +7,6 @@ export default function ContactSection({
   return (
     <section className="page-stack">
       <section className="section-heading">
-        <p className="eyebrow">Contact</p>
         <h2>Reach the team or collect product interest</h2>
         <p className="section-copy">
           This section rounds out the frontend with a realistic contact area for support, founder

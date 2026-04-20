@@ -4,7 +4,11 @@ import ContactSection from "./components/pages/ContactSection";
 import DashboardSection from "./components/pages/DashboardSection";
 import HomeSection from "./components/pages/HomeSection";
 import RecordsSection from "./components/pages/RecordsSection";
-import Waitlist from "./components/pages/Waitlist";
+import AuthPage from "./components/pages/AuthPage";
+import InterviewScreen from "./components/pages/InterviewScreen";
+import LandingPage from "./components/pages/LandingPage";
+import EvaluationReport from "./components/pages/EvaluationReport";
+
 
 
 
@@ -18,14 +22,15 @@ const navItems = [
   { id: "dashboard", label: "Dashboard" },
   { id: "records", label: "Records" },
   { id: "about", label: "About" },
-  { id: "contact", label: "Contact" }
+  { id: "contact", label: "Contact" },
+  
 ];
 
 const roleOptions = [
   { value: "fullstack", label: "Full Stack Engineer" },
   { value: "frontend", label: "Frontend Engineer" },
   { value: "backend", label: "Backend Engineer" },
-  { value: "ai", label: "AI Product Engineer" }
+  { value: "ai", label: "AI Engineer" }
 ];
 
 const roundOptions = [
@@ -723,10 +728,12 @@ export default function App() {
     const firstRecord = readStoredValue(STORAGE_KEYS.records, seededRecords)[0];
     return firstRecord ?? null;
   });
+  const [analysis, setAnalysis] = useState(null);
 
   const recognitionRef = useRef(null);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+  
 
   const draftQuestions = useMemo(
     () => generateQuestionSet(repoProfile, settings),
@@ -801,8 +808,10 @@ export default function App() {
     }
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
 
     if (!SpeechRecognition) {
+      setSpeechSupported(false);
       setSpeechStatus("Browser voice transcription is unavailable here. Type answers manually if needed.");
       return undefined;
     }
@@ -1341,6 +1350,8 @@ export default function App() {
       timerText={timerText}
       toggleVoiceCapture={toggleVoiceCapture}
       videoRef={videoRef}
+      analysis={analysis}
+      setAnalysis={setAnalysis}
     />
   );
 
@@ -1390,19 +1401,17 @@ export default function App() {
     authView
   ) : (
     <div className="app-shell">
-      <header className="topbar">
-        <div className="brand-lockup">
+      <header className="topbar flex items-center justify-between px-6">
+        <div className="brand-lockup flex items-center gap-3 min-w-fit">
           <img src="/brand-mark.svg" alt="ProjectLens logo" className="brand-mark" />
           <div>
             <p className="eyebrow">Repo-aware interview practice</p>
-            <h1>ProjectLens Interview OS</h1>
+            <h1 className="whitespace-nowrap">ProjectLens Interview</h1>
           </div>
         </div>
-        <div>
-      <Waitlist />
-    </div>
+        
 
-        <nav className="nav-links" aria-label="Primary">
+        <nav className="nav-links flex gap-6 flex-shrink-0" aria-label="Primary">
           {navItems.map((item) => (
             <button
               key={item.id}
@@ -1415,7 +1424,7 @@ export default function App() {
           ))}
         </nav>
 
-        <div className="topbar-actions">
+        <div className="topbar-actions flex items-center gap-4 min-w-fit">
           <div className="user-chip">
             <span className="user-chip-label">Signed in</span>
             <strong>{user.name}</strong>
