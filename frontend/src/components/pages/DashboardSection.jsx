@@ -1,45 +1,54 @@
-
-
-
-import React, { useRef, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export default function DashboardSection({
   repoUrl,
   handleRepoUrlChange,
-  setAnalysis,
-  analysis,
   startSession,
-  session={},
-  settings={},
-  handleSettingChange,
-  durationOptions,
-  pressureLabel,
 }) {
-  const videoRef = useRef(null);
-  const [cameraOn, setCameraOn] = useState(false);
+  const [analysis, setAnalysis] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [finalized, setFinalized] = useState(false);
 
-  const startCamera = async () => {
+  const videoRef = useRef(null);
+
+  // 🎥 Camera preview
+  useEffect(() => {
+    navigator.mediaDevices
+      .getUserMedia({ video: true })
+      .then((stream) => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      })
+      .catch(() => console.log("Camera blocked"));
+  }, []);
+
+  // 🔍 ANALYZE
+const analyzeRepo = async () => {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: true,
+    const res = await fetch("http://127.0.0.1:8000/api/github/analyze", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ repo_url: repoUrl }),
     });
 
-    if (videoRef.current) {
-      videoRef.current.srcObject = stream;
+    const data = await res.json();
 
-      // 🔥 IMPORTANT
-      await videoRef.current.play();
+    console.log("FINAL DATA:", data); // 👈 CHECK THIS
 
-      setCameraOn(true);
-    }
+    setAnalysis(data);
+
   } catch (err) {
-    console.error("Camera error:", err);
+    console.error(err);
   }
 };
 
-  const handleRepoSubmit = async () => {
+  // 🚀 START INTERVIEW
+  const startInterview = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/github/analyze", {
+      const res = await fetch("http://127.0.0.1:8000/api/start", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -48,213 +57,158 @@ export default function DashboardSection({
       });
 
       const data = await res.json();
-      setAnalysis(data);
+
+      if (data.session_id) {
+        startSession(data.session_id);
+      }
     } catch (err) {
-      console.error(err);
+      console.error("Start interview error:", err);
     }
   };
 
   return (
-    <section className="dashboard">
+    <div className="dashboard">
 
-      {/* HERO */}
-      <div className="hero">
-        <h1>
-          Interview Studio <span>&</span> <br />
-          Performance Control Center
-        </h1>
-        <p>
-          Track your interview sessions, analyze repository insights,
-          and optimize performance with AI-powered feedback.
-        </p>
-      </div>
+      {/* 🔥 HEADER */}
+      <h1 className="title">Interview Studio</h1>
 
-      {/* REPO INPUT */}
-      <div className="repo-card">
-        <h3>Repository Analyzer</h3>
-        <p>Paste your GitHub repository URL</p>
+      {/* 🔍 ANALYZER */}
+      <div className="card analyzer">
+        <h2>Repository Analyzer</h2>
 
-        <div className="repo-input">
+        <div className="input-row">
           <input
-            type="text"
-            placeholder="https://github.com/username/project"
             value={repoUrl}
             onChange={handleRepoUrlChange}
+            placeholder="Paste GitHub repo URL..."
           />
-          <button onClick={handleRepoSubmit}>Analyze</button>
+          <button onClick={analyzeRepo}>Analyze</button>
+        </div>
+
+        {loading && <p className="loading">Analyzing...</p>}
+
+        {analysis && (
+  <div className="analysis">
+
+    {/* SUMMARY */}
+    <p className="summary">
+      {analysis.summary || "No summary available"}
+    </p>
+
+    <div className="grid">
+
+      {/* TECH STACK */}
+      <div className="box">
+        <h3>Tech Stack</h3>
+        <div className="tags">
+          {(analysis.techstack || []).map((t, i) => (
+            <span key={i} className="tag">{t}</span>
+          ))}
         </div>
       </div>
 
-      {/* ANALYSIS */}
-      {analysis && (
-        <div className="analysis-section">
-
-          {/* SUMMARY */}
-          <div className="card">
-            <h3>Project Summary</h3>
-            <p>{analysis?.summary?.project_summary}</p>
-          </div>
-
-          {/* TECH STACK */}
-          <div className="card">
-            <h3>Tech Stack</h3>
-            <div className="tech">
-              {analysis?.summary?.tech_stack?.map((tech, i) => (
-                <span key={i} className="pill">{tech}</span>
-              ))}
-            </div>
-          </div>
-
-          {/* STRENGTH + WEAKNESS */}
-          <div className="grid">
-            <div className="card green">
-              <h3>Strengths</h3>
-              {analysis?.summary?.strengths?.map((s, i) => (
-                <p key={i}>✔ {s}</p>
-              ))}
-            </div>
-
-            <div className="card yellow">
-              <h3>Weaknesses</h3>
-              {analysis?.summary?.weaknesses?.map((w, i) => (
-                <p key={i}>⚠ {w}</p>
-              ))}
-            </div>
-          </div>
-
-          {/* INTERVIEW INSIGHTS */}
-          <div className="card">
-            <h3>Interview Insights</h3>
-            <div className="insights">
-              {analysis?.summary?.interview_questions?.map((q, i) => (
-                <div key={i} className="insight-box">
-                  {q}
-                </div>
-              ))}
-            </div>
-          </div>
+      {/* STRENGTHS */}
+      <div className="box">
+        <h3 style={{ color: "green" }}>Strengths</h3>
+        <div className="tags">
+          {(analysis.strengths || []).map((s, i) => (
+            <span key={i} className="tag green">{s}</span>
+          ))}
         </div>
-      )}
+      </div>
 
-      {/* BOTTOM SECTION */}
-      <div className="bottom-grid">
-
-        {/* INTERVIEW CONTROLS */}
-        <div className="card">
-          <h3>Interview Controls</h3>
-
-          <label>Duration</label>
-          <select
-            name="duration"
-            value={settings?.duration || 0}
-            onChange={handleSettingChange}
-          >
-            {durationOptions.map((d) => (
-              <option key={d.value} value={d.value}>
-                {d.label}
-              </option>
-            ))}
-          </select>
-
-          <label>Pressure Level</label>
-          <input
-            type="range"
-            min="1"
-            max="4"
-            name="pressure"
-            value={settings.pressure}
-            onChange={handleSettingChange}
-          />
-          <p>{pressureLabel}</p>
-
-          <button
-            className="start-btn"
-            onClick={startSession}
-            disabled={session.active}
-          >
-            {session.active ? "Running..." : "Start Interview"}
-          </button>
+      {/* WEAKNESSES */}
+      <div className="box">
+        <h3 style={{ color: "red" }}>Weaknesses</h3>
+        <div className="tags">
+          {(analysis.weaknesses || []).map((w, i) => (
+            <span key={i} className="tag red">{w}</span>
+          ))}
         </div>
+      </div>
 
-        {/* CAMERA */}
-        <div className="card">
-          <h3>Camera & Mic Preview</h3>
-
-          {cameraOn ? (
-  <video
-    ref={videoRef}
-    autoPlay
-    playsInline
-    muted
-    className="video"
-  />
-) : (
-  <div className="camera-off">
-    <p>Camera is off</p>
-    <button onClick={startCamera}>Turn On</button>
+    </div>
   </div>
 )}
-        </div>
+      </div>
+      {/* 🎯 INTERVIEW */}
+      <div className="card controls">
+        <h2>Interview Controls</h2>
+
+        <select>
+          <option>5 minutes</option>
+          <option>15 minutes</option>
+          <option>30 minutes</option>
+        </select>
+
+        <select>
+          <option>Easy</option>
+          <option>Medium</option>
+          <option>Hard</option>
+        </select>
+
+        <button className="start-btn" onClick={startSession}>
+          ▶ Start Interview
+        </button>
       </div>
 
-      {/* STYLES */}
+      {/* 🎥 CAMERA */}
+      <div className="card camera">
+        <h2>Camera Preview</h2>
+        <video ref={videoRef} autoPlay playsInline />
+      </div>
+
+      {/* 🎨 STYLES */}
       <style>{`
         .dashboard {
-  background: #f5f5f5;
-  min-height: 100vh;
-}
-        .hero {
-          color: black;
+          padding: 30px;
+          background: #f8fafc;
+          font-family: sans-serif;
         }
 
-.hero p {
-  color: #444;
-}
-
-        .hero span {
-          color: orange;
+        .title {
+          font-size: 28px;
+          margin-bottom: 20px;
         }
 
-        .repo-card {
-          margin-top: 20px;
-          background: #111;
+        .card {
+          background: white;
           padding: 20px;
-          border-radius: 10px;
-          color: white;
+          border-radius: 14px;
+          margin-bottom: 20px;
+          box-shadow: 0 5px 20px rgba(0,0,0,0.05);
         }
 
-        .repo-input {
+        .input-row {
           display: flex;
           gap: 10px;
-          margin-top: 10px;
         }
 
         input {
           flex: 1;
-          padding: 10px;
-          background: #111;
-          border: 1px solid #333;
-          color: white;
+          padding: 12px;
+          border-radius: 8px;
+          border: 1px solid #ddd;
         }
 
         button {
-          background: orange;
+          background: #ff7a00;
+          color: white;
           border: none;
-          padding: 10px 20px;
+          padding: 12px 16px;
+          border-radius: 8px;
           cursor: pointer;
         }
 
-        .analysis-section {
-          margin-top: 30px;
+        .loading {
+          margin-top: 10px;
+          color: gray;
         }
 
-        .card {
-  background: #ffffff;
-  color: #000;
-  border-radius: 12px;
-  padding: 20px;
-  border: 1px solid #e5e5e5;
-}
+        .summary {
+          margin: 20px 0;
+          color: #444;
+        }
 
         .grid {
           display: grid;
@@ -262,69 +216,48 @@ export default function DashboardSection({
           gap: 20px;
         }
 
-        .green {
-  border-left: 4px solid #22c55e;
-  background: #f0fdf4;
-}
-
-.yellow {
-  border-left: 4px solid #facc15;
-  background: #fffbeb;
-}
-        .tech {
-          display: flex;
-          gap: 10px;
-          flex-wrap: wrap;
+        .box {
+          background: #f1f5f9;
+          padding: 15px;
+          border-radius: 10px;
         }
+
+        .tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .tag {
+          background: #e2e8f0;
+          padding: 6px 10px;
+          border-radius: 20px;
+          font-size: 12px;
+        }
+
+        .green { color: #16a34a; }
+        .red { color: #dc2626; }
 
         .pill {
-  background: #f3f4f6;
-  color: #000;
-  border-radius: 20px;
-  padding: 6px 12px;
-}
-
-        .insights {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 10px;
-        }
-
-        .insight-box {
-          background: #1a1a1a;
-          padding: 10px;
+          padding: 8px;
           border-radius: 8px;
-          color: white;
+          margin: 6px 0;
         }
 
-        .bottom-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 20px;
-          margin-top: 30px;
-        }
+        .green-bg { background: #dcfce7; }
+        .red-bg { background: #fee2e2; }
 
         .start-btn {
-          margin-top: 20px;
           width: 100%;
-        }
-          button {
-  background: orange;
-  color: black;
-  font-weight: 600;
-}
-
-        .camera-off {
-          text-align: center;
+          margin-top: 10px;
         }
 
-        .video {
+        video {
           width: 100%;
           border-radius: 10px;
-          height:auto;
-          background: black;
+          margin-top: 10px;
         }
       `}</style>
-    </section>
+    </div>
   );
 }

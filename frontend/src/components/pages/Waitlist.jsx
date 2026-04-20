@@ -56,7 +56,7 @@ export default function Waitlist({ onClose }) {
         padding: "25px",
         borderRadius: "12px",
         maxWidth: "400px",
-        margin: "40px auto",
+        margin: "0 auto",
         boxShadow: "0 10px 30px rgba(0,0,0,0.2)"
       }}
     >

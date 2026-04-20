@@ -90,7 +90,11 @@ export default function HomeSection({
         </aside>
       </section>
 
-      {showWaitlist && (<Waitlist onClose={() => setShowWaitlist(false)} />)}
+      {showWaitlist && (
+  <div style={overlayStyle}>
+    <Waitlist onClose={() => setShowWaitlist(false)} />
+  </div>
+)}
 
       {/* FEATURES */}
       <section className="section-block">
@@ -104,3 +108,15 @@ export default function HomeSection({
     </section>
   );
 }
+const overlayStyle = {
+  position: "fixed",
+  top: 0,
+  left: 0,
+  width: "100%",
+  height: "100%",
+  background: "rgba(0,0,0,0.6)",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  zIndex: 1000,
+};

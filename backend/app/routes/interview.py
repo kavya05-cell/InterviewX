@@ -1,12 +1,13 @@
 from fastapi import APIRouter, UploadFile, File, Query
 import base64
+import asyncio
 
-from app.services.github_service import fetch_repo_data, format_repo_summary
+from app.services.github_service import fetch_repo_data
 from app.services.interview_engine import generate_first_question, generate_next_question
 from app.services.evaluation_engine import evaluate_answer
 from app.services.session_manager import create_session, get_session, update_session
 from app.services.voice_service import speech_to_text
-from app.services.tts_service import text_to_speech
+
 
 router = APIRouter()
 from pydantic import BaseModel
@@ -28,9 +29,18 @@ async def start_interview(data: StartRequest):
     if not repo_data:
         return {"error": "Failed to fetch repo"}
 
-    summary = format_repo_summary(repo_data)
+    summary = (
+        repo_data.get("description")
+        or f"A {repo_data.get('language')} project from GitHub"
+    )
 
-    question = await generate_first_question(summary,difficulty)
+    try:
+        question = await asyncio.wait_for(
+            generate_first_question(summary, difficulty),
+            timeout=5
+        )
+    except:
+        question = "Can you explain your project?"
 
     session_id = create_session(summary, question, difficulty)
 
@@ -38,7 +48,6 @@ async def start_interview(data: StartRequest):
         "session_id": session_id,
         "question": question
     }
-
 
 @router.post("/voice-next")
 async def voice_next(
