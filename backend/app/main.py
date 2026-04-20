@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import interview, github, voice, evaluation
+from app.routes import voice
+
+
 
 app = FastAPI(title="InterviewX API", description="Backend for the AI Mock Interview SaaS")
 
@@ -21,3 +24,4 @@ app.include_router(interview.router, prefix="/api/interview", tags=["Interview"]
 app.include_router(github.router, prefix="/api/github", tags=["GitHub"])
 app.include_router(voice.router, prefix="/api/voice", tags=["Voice Pipeline"])
 app.include_router(evaluation.router, prefix="/api/evaluation", tags=["Evaluation"])
+
