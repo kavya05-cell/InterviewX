@@ -1,8 +1,10 @@
+
+require("dotenv").config();
 const mongoose = require("mongoose");
 
 const connectDb= async () =>{
     try{
-         mongoose.connect("mongodb://localhost:27017/backend");
+        await mongoose.connect(process.env.MONGO_URI);
         console.log("MongoDB connected successfully");
 
     }
@@ -11,5 +13,5 @@ const connectDb= async () =>{
     }
 }
 
-//agar ye nhi likhi kisi or file m ishse use nhi kar sakte
+//agar ye nhi likhi kisi or file m isse use nhi kar sakte
 module.exports=connectDb;

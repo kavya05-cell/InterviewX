@@ -3,7 +3,12 @@
 import httpx
 import traceback
 import json
-OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+OLLAMA_URL = os.getenv("OLLAMA_URL")
 DEFAULT_MODEL = "phi3:mini" 
 ""
 
