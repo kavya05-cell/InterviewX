@@ -3,13 +3,13 @@ import Waitlist from "./Waitlist";
 import { useState} from "react";
 
 export default function HomeSection({
-  homeFeatures,
-  latestOverall,
+  homeFeatures=[],
+  latestOverall=0,
   onOpenDashboard,
   onOpenRecords,
-  pressureLabel,
-  recordsCount,
-  sessionDuration,
+  pressureLabel="Medium",
+  recordsCount=0,
+  sessionDuration=25,
   //uniqueFeatures
 }) {
   const [showWaitlist, setShowWaitlist] = useState(false);
@@ -34,7 +34,7 @@ export default function HomeSection({
             <button
               type="button"
               className="primary-btn"
-              onClick={onOpenDashboard}
+              onClick={()=>onOpenDashboard?.()}
             >
               Open Dashboard
             </button>
@@ -42,7 +42,7 @@ export default function HomeSection({
             <button
               type="button"
               className="secondary-btn"
-              onClick={onOpenRecords}
+              onClick={()=>onOpenRecords?.()}
             >
               View Records
             </button>
@@ -70,22 +70,22 @@ export default function HomeSection({
 
           <div className="snapshot-row">
             <span>Pressure</span>
-            <strong>{pressureLabel}</strong>
+            <strong>{pressureLabel || "Medium"}</strong>
           </div>
 
           <div className="snapshot-row">
             <span>Session plan</span>
-            <strong>{sessionDuration} minutes</strong>
+            <strong>{sessionDuration || 25} minutes</strong>
           </div>
 
           <div className="snapshot-row">
             <span>Records saved</span>
-            <strong>{recordsCount}</strong>
+            <strong>{recordsCount ?? 0}</strong>
           </div>
 
           <div className="snapshot-row">
             <span>Latest score</span>
-            <strong>{latestOverall}%</strong>
+            <strong>{latestOverall ?? 0}%</strong>
           </div>
         </aside>
       </section>
@@ -95,7 +95,7 @@ export default function HomeSection({
       {/* FEATURES */}
       <section className="section-block">
         <div className="feature-grid">
-          {homeFeatures.map((feature) => (
+          {(homeFeatures || []).map((feature) => (
             <FeatureCard key={feature.title} {...feature} />
           ))}
         </div>

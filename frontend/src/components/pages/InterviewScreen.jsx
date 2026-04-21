@@ -37,7 +37,8 @@ useEffect(() => {
 
   ws.current.onopen = () => {
   ws.current.send(JSON.stringify({
-    repoUrl: "https://github.com/facebook/react"
+    type:"start",
+    session_id: sessionId
   }));
 };
 
@@ -46,35 +47,42 @@ useEffect(() => {
   };
 
   ws.current.onmessage = (event) => {
-    console.log("RAW WS DATA:", event.data);   // 👈 ADD THIS
 
-    try {
       const msg = JSON.parse(event.data);
-      console.log("PARSED MSG:", msg);        // 👈 ADD THIS
-
       if (msg.type === "ai_state") {
         setAiState(msg.state);
       }
 
-      if (msg.type === "audio_chunk" && msg.text_transcript) {
+      if (msg.type === "question") {
         setMessages(prev => [
           ...prev,
           { role: "ai", text: msg.text_transcript }
         ]);
       }
-
-    } catch (e) {
-      console.error("WS error:", e);
-    }
+      if(msg.type ==="feedback"){
+        setMessages(prev => [
+          ...prev,
+          { role: "ai", text: `Feedback: ${msg.feedback}` }
+        ]);
+      }
+      if(msg.type === "end"){
+        navigate("/report",{
+          state:{reportData:msg.report}
+        });
+      }
+    
   };
-
+return () => ws.current?.close();
+  [sessionId]
   ws.current.onclose = () => {
     console.log("❌ WebSocket closed");
   };
 
   // ✅ Send session_id (FIXED)
   ws.current.send(JSON.stringify({
-    repoUrl: "https://github.com/your-repo"
+    type: "start",
+    text: transcript,
+    session_id: sessionId
   }));
 
   return () => {

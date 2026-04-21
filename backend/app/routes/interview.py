@@ -1,81 +1,81 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-import asyncio
-from pydantic import BaseModel
+from fastapi import APIRouter, UploadFile, File, Query
+import base64
 
-from app.services.session_manager import (
-    create_session,
-    append_to_transcript,
-    get_session
-)
-from app.services.github_service import fetch_repo_data
-from app.services.interview_engine import process_turn
+from app.services.github_service import fetch_repo_data, format_repo_summary
+from app.services.interview_engine import generate_first_question, generate_next_question
+from app.services.evaluation_engine import evaluate_answer
+from app.services.session_manager import create_session, get_session, update_session
+from app.services.voice_service import speech_to_text
+from app.services.tts_service import text_to_speech
 
 router = APIRouter()
+from pydantic import BaseModel
 
 class StartRequest(BaseModel):
     repo_url: str
-
+    difficulty: str   # easy | medium | hard
 
 @router.post("/start")
-async def start_interview(req: StartRequest):
-    """
-    Initializes interview session using repo context
-    """
-    repo_context = await fetch_repo_data(req.repo_url)
-    session_id = create_session(repo_context)
+async def start_interview(data: StartRequest):
+    repo_url = data.repo_url
+    difficulty = data.difficulty
 
-    first_question = "Tell me about your project."
+    if not repo_url:
+        return {"error": "repo_url required"}
 
-    append_to_transcript(session_id, "ai", first_question)
+    repo_data = await fetch_repo_data(repo_url)
+
+    if not repo_data:
+        return {"error": "Failed to fetch repo"}
+
+    summary = format_repo_summary(repo_data)
+
+    question = await generate_first_question(summary,difficulty)
+
+    session_id = create_session(summary, question, difficulty)
 
     return {
         "session_id": session_id,
-        "first_question": first_question
+        "question": question
     }
 
 
-class AnswerRequest(BaseModel):
-    session_id: str
-    answer: str
+@router.post("/voice-next")
+async def voice_next(
+    session_id: str = Query(...),
+    file: UploadFile = File(...)
+):
+    session = get_session(session_id)
 
+    if not session:
+        return {"error": "Invalid session_id"}
 
-@router.post("/answer")
-async def answer_question(req: AnswerRequest):
-    """
-    Handles user answer and returns next AI response
-    """
-    result = await process_turn(req.session_id, req.answer)
-    return result
+    # save temp file
+    temp_path = f"temp_{file.filename}"
+    with open(temp_path, "wb") as f:
+        f.write(await file.read())
 
+    # STT
+    answer = speech_to_text(temp_path)
 
-@router.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
+    question = session["current_question"]
 
-    print("✅ WebSocket connected")
+    score = await evaluate_answer(question, session["summary"], answer)
 
-    # 1. Receive repo URL from frontend
-    config = await websocket.receive_json()
-    repo_url = config.get("repoUrl")
+    update_session(session_id, question, answer, score)
 
-    print("📦 Repo:", repo_url)
+    next_q = await generate_next_question(
+        session["summary"],
+        session["history"],
+        session["weak_areas"],
+        session["difficulty"]
+    )
+    if not next_q:
+       next_q = "Can you explain your project architecture?"
 
-    # 2. Fetch GitHub context
-    repo_context = await fetch_repo_data(repo_url)
-
-    # 3. Send first question
-    await websocket.send_json({
-        "response": "Tell me about your project."
-    })
-
-    # 4. Interview loop
-    while True:
-        user_answer = await websocket.receive_text()
-
-        print("🧑 User:", user_answer)
-
-        result = await process_turn(user_answer, repo_context)
-
-        print("🤖 AI:", result)
-
-        await websocket.send_json(result)
+    session["current_question"] = next_q
+    return {
+    "answer_text": answer,
+    "next_question": next_q,
+    "score": score
+    }
